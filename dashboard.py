@@ -323,11 +323,28 @@ def solve_node(node, crit):
 
 
 def _chance_val(cv, w, crit):
-    if   crit == "EU linear":  return sum(wi*v for wi,v in zip(w,cv))
-    elif crit == "EU concave": return sum(wi*math.log(max(v+6000,1)) for wi,v in zip(w,cv))
-    elif crit == "EU convex":  return sum(wi*((v+6000)**1.5) for wi,v in zip(w,cv))
-    else:                      return sum(wi*v for wi,v in zip(w,cv))
-
+    """
+    Calculates the expected utility based on the specified risk profile.
+    cv: list of values (consequences)
+    w:  list of weights (probabilities)
+    crit: string defining the utility function
+    """
+    if crit == "EU linear":
+        # Linear: u(x) = x
+        return sum(wi * v for wi, v in zip(w, cv))
+        
+    elif crit == "EU concave":
+        # Concave: u(x) = sqrt(6000 + x)
+        # Using max(..., 0) to prevent domain errors with sqrt
+        return sum(wi * math.sqrt(max(6000 + v, 0)) for wi, v in zip(w, cv))
+        
+    elif crit == "EU convex":
+        # Convex: u(x) = (6000 + x)^2
+        return sum(wi * ((6000 + v)**2) for wi, v in zip(w, cv))
+        
+    else:
+        # Default to linear if criterion is unrecognized
+        return sum(wi * v for wi, v in zip(w, cv))
 
 def collect_opt_path(node, result, path=None):
     if path is None: path = set()
